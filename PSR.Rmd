@@ -1,0 +1,142 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+library(readr)
+importacao_siscori <- read_csv("Gaga/importacao_siscori.csv")
+```
+
+```{r}
+#Criando a data
+library(dplyr)
+library(lubridate)
+Data <- ym(importacao_siscori$anomes)
+importacao_siscori$Data <- Data
+```
+
+```{r}
+#Renomeando os códigos de cod_ncm
+importacao_siscori$cod_ncm[importacao_siscori$cod_ncm==73211100] <- "Fogões"
+importacao_siscori$cod_ncm[importacao_siscori$cod_ncm==84501100] <- "Máquina de lavar inferior a 10kg"
+importacao_siscori$cod_ncm[importacao_siscori$cod_ncm==84502090] <- "Máquina de lavar superior a 10kg"
+```
+
+```{r}
+#Retirando os 5 números finais de código pedido e removendo uma das observações duplicadas
+library(stringr)
+Codigo_pedido <- with(importacao_siscori, str_sub(codigo_pedido, end = -5))
+importacao_siscori$codigo_pedido <- Codigo_pedido
+BaseDados <- importacao_siscori %>% distinct()
+BaseDados %>%
+  select(-c(anomes, codigo_pedido))
+```
+```{r}
+#Maior pedido de cada produto
+Maior_Pedido <- BaseDados %>%
+  group_by(cod_ncm) %>%
+  summarise(
+    maior_pedido = max(qtd_total_pedido)
+  )
+Maior_Pedido
+
+```
+
+```{r}
+#Quantidade total de pedidos por data
+Pedidos_Data <- BaseDados %>%
+  group_by(cod_ncm, Data) %>%
+  summarise(
+    pedidos = sum(qtd_total_pedido)
+  )
+Pedidos_Data
+```
+
+
+```{r}
+library(ggplot2)
+#Fogões
+ggplot(data = Pedidos_Data %>% filter(cod_ncm=="Fogões")) + geom_point(mapping = aes(y=pedidos, x=Data)) + ylim(0,150000)
+```
+O gráfico para os pedidos de fogões ao longo do tempo mostra relativa constância com os pedidos se distribuindo entre 0 e 75000 pedidos, com exceção de um pedido localizado perto dos 150000.
+
+```{r}
+#Máquina de lavar superior a 10kg
+ggplot(data = Pedidos_Data %>% filter(cod_ncm=="Máquina de lavar superior a 10kg")) + geom_point(mapping = aes(y=pedidos, x=Data)) + ylim(0,250000) 
+```
+Por outro lado, o gráfico das máquinas de lavar roupa superiores a 10kg apresenta uma tendência crescente ao longo do tempo.
+
+```{r}
+#Máquina de lavar inferior a 10kg
+ggplot(data = Pedidos_Data %>% filter(cod_ncm=="Máquina de lavar inferior a 10kg")) + geom_point(mapping = aes(y=pedidos, x=Data)) + ylim(0,1800)
+```
+O gráfico para a máquina de lavar roupa inferior a 10kg não apresenta uma tendência clara, apresentando relativa variância dos pedidos ao longo do tempo.
+
+```{r}
+#Fogões
+BaseDados %>%
+  filter(cod_ncm=="Fogões") %>%
+  nrow()
+#Máquina de lavar inferior a 10kg
+BaseDados %>%
+  filter(cod_ncm=="Máquina de lavar inferior a 10kg") %>%
+  nrow()
+#Máquina de lavar superior a 10kg
+BaseDados %>%
+  filter(cod_ncm=="Máquina de lavar superior a 10kg") %>%
+  nrow()
+```
+
+
+```{r}
+Pedidos_Produto <- BaseDados %>%
+  group_by(cod_ncm) %>%
+  summarise(
+    pedidos = sum(qtd_total_pedido)
+  )
+Pedidos_Produto
+
+```
+É observado que o número de pedidos de fogões e máquinas de lavar roupa superiores a 10kg são bem superiores ao de máquinas de lavar roupa inferiores a 10kg, onde os pedidos por máquinas de lavar roupa superiores a 10kg é maior que a soma dos pedidos dos demais produtos.
+
+```{r}
+#País de origem = País de aquisição
+ PO_PA <- BaseDados$pais_de_origem %in% BaseDados$pais_de_aquisicao
+sum(PO_PA)
+```
+Das 12126 observações que temos na amostra, em 99,8% delas o país de origem é o mesmo que o país de aquisição.
+
+```{r}
+Moda <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+Moda(BaseDados$pais_de_origem)     #País que mais vezes aparece como país de origem
+Moda(BaseDados$pais_de_aquisicao)  #País que mais vezes aparece como país de aquisição
+```
+Analisando a moda da amostra, encontramos que a China aparece mais vezes como país de origem e a Coréia do Sul aparece mais vezes como país de aquisição.
+
+```{r}
+#Número de pedidos por país de origem
+Pedidos_Pais_Origem <- BaseDados %>%
+  group_by(pais_de_origem, cod_ncm) %>%
+  filter(pais_de_origem %in% c("CHINA, REPUBLICA POP","ESTADOS UNIDOS","COREIA (DO SUL), REP")) %>%
+  summarise(
+    Pedidos = sum(qtd_total_pedido)
+  )
+Pedidos_Pais_Origem
+```
+
+
+```{r}
+#Número de pedidos por país de aquisição
+Pedidos_Pais_Aquisicao <- BaseDados %>%
+  group_by(pais_de_aquisicao, cod_ncm) %>%
+  filter(pais_de_aquisicao %in% c("CHINA, REPUBLICA POP","ESTADOS UNIDOS","COREIA (DO SUL), REP")) %>%
+  summarise(
+    Pedidos = sum(qtd_total_pedido)
+  )
+Pedidos_Pais_Aquisicao
+```
+
+
