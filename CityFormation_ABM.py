@@ -1,4 +1,11 @@
 ## City Formation Problem
+# To model the formation of cities, we construct a one-dimensional world in which each site is capable of holding an unlimited number of agents. We begin by assuming that these locations are arranged in
+# a line. A city in such a model will be a site that is occupied by a relatively large number of agents. Agents move in response to economic and social variables associated with each site, such as wage rates, 
+# living conditions, and commodity prices. Rather than separately model each of these variables, we collapse them into two generic categories that indirectly serve as proxies for the key elements driving locational choice. The two
+# proxies we use are the agent’s home population—that is, the number of other agents located at the agent’s current site—and the average distance
+# of the agent to all of the other agents
+
+
 import random
 import numpy as np
 import matplotlib.pyplot as plt
@@ -65,6 +72,7 @@ plt.show()
 
 
 ## Agents dislike each other
+# However, in the model where agents “dislike” other agents and want to maximize average distance.
 import random
 import numpy as np
 import matplotlib.pyplot as plt
