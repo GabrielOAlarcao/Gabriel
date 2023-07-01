@@ -1,4 +1,16 @@
 ## Minimum Maximum Problem (MINMAX)
+# Given an acyclic graph with weighted branches, the shortest path problem is
+# to find the path from source s to target t whose (weighted) length is minimal.
+# Each path is a sequence of branches, and its length is the sum of the weights
+# of the branches in the path. The maximal link in any path is the maximum
+# of the weights of the branches in the path. The MINMAX problem is that of
+# finding the path from s to t whose maximal link is minimal. To use DP to solve
+# this problem, ordinarily we would construct the MINMAX path by making a
+# sequence of decisions for the branches in the path, and attribute to each of
+# these decisions a separable cost. However, for this problem these cost are not
+# additive (or multiplicative, as for RDP), as is usually the case. Despite this,
+# the problem can still be solved using DP.
+
 ###############
 def minmax_path(graph, source, target):
     # Initialize DP table
