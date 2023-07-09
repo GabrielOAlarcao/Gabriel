@@ -232,7 +232,7 @@ summary(modeloEF <- plm(log(salario) ~ Educ + Idade + Idade^2 +  Chefe_Domicilio
 summary(modeloEF1 <- plm(log(salario) ~ Educ + Idade + Idade^2 +  Chefe_Domicilio + Sexo + Regiao + Casados + UF_MG + UF_ES + UF_RJ + Nivel_Escolaridade_Superior_completo + Filhos06_Domicilio + Educ:Data_Periodo9  + Nivel_Escolaridade_Superior_completo:Data_Periodo9 + Horas_Trabalhadas , model = "within", index = c("Data"), data = PNAD_Sudeste_Assalariados))
 
 # Estimando para efeitos aleatórios --------------------------------------
-summary(modeloEA <- plm(log(salario) ~ Educ + Idade + Idade^2 +  Chefe_Domicilio + Sexo + Regiao + Casados + UF_MG + UF_ES + UF_RJ + Nivel_Escolaridade_Superior_completo + Filhos06_Domicilio + Horas_Trabalhadas, model = "random", index = c("idind","Data"), data = PNAD_Sudeste_Assalariados))
+summary(modeloEA <- plm(log(salario) ~ Educ + Idade + Idade^2 +  Chefe_Domicilio + Sexo + Regiao + Casados + UF_MG + UF_ES + UF_RJ + Nivel_Escolaridade_Superior_completo + Filhos06_Domicilio + Horas_Trabalhadas, model = "random", index = c("ID_DOMICILIO","Data"), data = PNAD_Sudeste_Assalariados))
 
 # Teste de Hausman
 phtest(modeloEF, modeloEA)
@@ -245,7 +245,7 @@ summary(modeloPD <- plm(log(salario) ~ Educ + Idade + Idade^2 +  Chefe_Domicilio
 
 
 # Modelo de Efeitos aleatórios Correlacionados --------------------------------------
-summary(modeloEAC <- plm(log(salario) ~ Educ + Idade + Idade^2 +  Chefe_Domicilio + Sexo + Regiao + Casados + UF_MG + UF_ES + UF_RJ + Nivel_Escolaridade_Superior_completo + Filhos06_Domicilio + Horas_Trabalhadas, model = "between", index = c("idind", "Data"), data = PNAD_Sudeste_Assalariados))
+summary(modeloEAC <- plm(log(salario) ~ Educ + Idade + Idade^2 +  Chefe_Domicilio + Sexo + Regiao + Casados + UF_MG + UF_ES + UF_RJ + Nivel_Escolaridade_Superior_completo + Filhos06_Domicilio + Horas_Trabalhadas, model = "between", index = c("ID_DOMICILIO", "Data"), data = PNAD_Sudeste_Assalariados))
 
 # Estimação por modelo logit --------------------------------------
 summary(modeloLogit <- glm(Empregado ~ Educ + Filhos06_Domicilio + Regiao + Casados  + Renda_Dom + Idade + Idade^2 + Sexo  + V2010_Preta + V2010_Parda  + Nivel_Escolaridade_Superior_completo + UF_MG + UF_ES + UF_RJ, family = binomial(link = "logit"), data = PNAD_Sudeste))
