@@ -20,7 +20,6 @@ library(zoo)
 library(stats)
 
 ## Estabelecendo a chave de acesso ao FRED
-fredr_set_key("6665a041528ca2272bbfcf8bc267c940")
 
 
 ## Extraindo os dados
