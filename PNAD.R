@@ -2,10 +2,20 @@ library(PNADcIBGE)
 library(dplyr)
 library(fastDummies)
 
-dadosPNADc <- get_pnadc(year=c(2015,2016,2017), quarter=c(1,2,3,4))
+# Realizando o download dos dados
+PNADc <- data.frame()
+
+for (i in 2015:2016){
+  for (j in 1:4){
+    dadosPNADc <- get_pnadc(year=i, quarter= j, design = F)
+    PNADc <- rbind(PNADc, dadosPNADc)
+  }
+}
+
+
 
 # Filtrando para algumas variáveis de interesse
-PNAD <- dadosPNADc[["variables"]] %>%
+PNAD <- PNADc %>%
   select(Ano, Trimestre, UF, UPA, Estrato, ID_DOMICILIO, 
          V1008, # Número de Seleção do Domicílio
          V1014, # Painel
@@ -23,6 +33,7 @@ PNAD <- dadosPNADc[["variables"]] %>%
          VD3005, # Anos de estudo (pessoas de 5 anos ou mais de idade) padronizado para o Ensino fundamental com duração de 9 anos
          VD4017, # Rendimento mensal efetivo do trabalho principal
          V4039) %>% # Quantas horas ... trabalhava normalmente, por semana, nesse trabalho principal
+  filter(UF %in% c("Minas Gerais", "São Paulo", "Rio de Janeiro", "Espírito Santo")) %>%
   mutate_at(vars(V1022), function(x) ifelse(x == "Urbana", 0, 1)) %>%
   mutate_at(vars(V2005), function(x) ifelse(x == 1, 1, 0)) %>% # Criando variável para chefe do Domícilio
   mutate_at(vars(V2007), function(x) ifelse(x == 1, 1, 0)) %>% # 1 para Homem, 0 para Mulher
@@ -46,7 +57,6 @@ PNAD <- dadosPNADc[["variables"]] %>%
          Salario = VD4017,
          Regiao = V1022,
          Horas_Trabalhadas = V4039) %>%
-  filter(UF %in% c("Minas Gerais", "São Paulo", "Rio de Janeiro", "Espírito Santo")) %>%
   mutate(UF = case_when(UF %in% c("Minas Gerais") ~ "MG",
                         UF %in% c("São Paulo") ~ "SP",
                         UF %in% c("Rio de Janeiro") ~ "RJ",
