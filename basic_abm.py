@@ -1,55 +1,60 @@
 ## Simulation Model
+# Economics with Heterogeneous Interacting Agents
 import numpy as np
 import matplotlib.pyplot as plt
 
 class FirmSimulation:
-    def __init__(self, Ni, Time, gamma, phi, Pbar, r, delta, rbar):
+    def __init__(self, Ni, Time, gamma, phi, Pbar, delta, rbar, MC):
         self.Ni = Ni
         self.Time = Time
         self.gamma = gamma
         self.phi = phi
         self.Pbar = Pbar
-        self.r = r
         self.delta = delta
         self.rbar = rbar
-        self.A = np.ones((Ni, 1))
-        self.K = np.ones((Ni, 1))
-        self.B = np.zeros((Ni, 1))
-        self.I = np.zeros((Ni, 1))
-        self.P = np.zeros((Ni, 1))
-        self.Y = np.zeros((Ni, 1))
-        self.Z = 2 * np.random.rand(Ni, 1) + Pbar
-        self.YY = np.zeros((Time, 1))
-        self.AA = np.zeros((Time, 1))
-        self.BB = np.zeros((Time, 1))
+        self.MC = MC
+        self.r = np.ones((Ni, Time, MC))
+        self.A = np.ones((Ni, Time, MC))
+        self.K = np.ones((Ni, Time, MC))
+        self.B = np.zeros((Ni, Time, MC))
+        self.I = np.zeros((Ni, Time, MC))
+        self.P = np.zeros((Ni, Time, MC))
+        self.Y = np.zeros((Ni, Time, MC))
+        self.Z = 2 * np.random.rand(Ni, 1, MC) + Pbar
+        self.YY = np.zeros((Time, MC))
+        self.AA = np.zeros((Time, MC))
+        self.BB = np.zeros((Time, MC))
 
     def run_simulation(self):
-        for t in range(1, self.Time):
-            self.I = self.gamma * self.Z
-            self.K = (1 - self.delta)*self.K + self.I
-            self.Y = self.phi * self.K
-            self.B = self.K - self.A
-            self.B[self.B < 0] = 0
-            self.P = 2 * np.random.rand(self.Ni, 1) + self.Pbar
-            self.Z = self.P * self.Y - self.r * self.K
-            self.A = self.A + self.Z
-            self.r = self.rbar + self.rbar*(self.B/self.A)**(self.rbar)
-            self.Z[self.A < 0] = 0
-            self.I[self.I < 0] = 0
-            self.K[self.A < 0] = 1
-            self.A[self.A < 0] = 1
-            self.YY[t] = np.sum(self.Y)
-            self.AA[t] = np.sum(self.A)
-            self.BB[t] = np.sum(self.B)
+        for mc in range(self.MC):
+            for t in range(1, self.Time):
+                self.I[:, t, mc] = self.gamma * self.Z[:, t-1, mc]
+                self.K[:, t, mc] = (1 - self.delta) * self.K[:, t-1, mc] + self.I[:, t, mc]
+                self.Y[:, t, mc] = self.phi * self.K[:, t, mc]
+                self.B[:, t, mc] = self.K[:, t, mc] - self.A[:, t-1, mc]
+                self.B[self.B[:, t, mc] < 0, t, mc] = 0
+                self.P[:, t, mc] = 2 * np.random.rand(self.Ni) + self.Pbar
+                self.Z[:, t, mc] = self.P[:, t, mc] * self.Y[:, t, mc] - self.r[:, t, mc] * self.K[:, t, mc]
+                self.A[:, t, mc] = self.A[:, t-1, mc] + self.Z[:, t, mc]
+                self.r[:, t, mc] = self.rbar + self.rbar * (self.B[:, t, mc] / self.A[:, t, mc]) ** self.rbar
+                self.Z[self.A[:, t, mc] < 0, t, mc] = 0
+                self.I[self.I[:, t, mc] < 0, t, mc] = 0
+                self.K[self.A[:, t, mc] < 0, t, mc] = 1
+                self.A[self.A[:, t, mc] < 0, t, mc] = 1
+                self.YY[t, mc] = np.sum(self.Y[:, t, mc])
+                self.AA[t, mc] = np.sum(self.A[:, t, mc])
+                self.BB[t, mc] = np.sum(self.B[:, t, mc])
 
-    def plot_results(self, variable_name):
+    def plot_results(self, variable_name, simulation_index=0):
         time_steps = np.arange(1, self.Time)
-        variable_values = getattr(self, variable_name)[1:]
+        variable_values = getattr(self, variable_name)[1:, simulation_index]
 
         plt.figure(figsize=(10, 4))
 
-        plt.plot(time_steps, variable_values, label=variable_name)
-        plt.title(f'{variable_name} Over Time')
+        for mc in range(self.MC):
+          plt.plot(time_steps, variable_values[:, mc], label=f'{variable_name} (Simulation {mc + 1})')
+          
+        plt.title(f'{variable_name} Over Time (All Simulations)')
         plt.xlabel('Time')
         plt.ylabel(variable_name)
         plt.legend()
@@ -63,10 +68,10 @@ Time = 1000  # Number of simulations
 gamma = 1.1  # Investment accelerator
 phi = 0.1  # Capital produtivity
 Pbar = 0.01  # Price constant
-r = 0.1  # Interest rate
+rbar = 0.075  # Interest rate
 delta = 0.05 # Depreciation rate
 
-simulation = FirmSimulation(Ni, Time, gamma, phi, Pbar, r)
+simulation = FirmSimulation(Ni, Time, gamma, phi, Pbar, rbar, delta)
 simulation.run_simulation()
 
 # Plotting different variables
